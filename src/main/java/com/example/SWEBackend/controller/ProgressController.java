@@ -17,7 +17,7 @@ public class ProgressController {
     private final ProgressService service;
 
     @PostMapping("/lesson")
-    public Users lesson(@RequestBody ProgressRequest.ProgressRequest req) {
+    public Users lesson(@RequestBody ProgressRequest req) {
         return service.completeLesson(req.userId(), req.xp());
     }
 }
