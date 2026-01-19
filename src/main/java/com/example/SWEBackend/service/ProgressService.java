@@ -1,58 +1,56 @@
 package com.example.SWEBackend.service;
 
-import com.example.SWEBackend.entity.Lesson;
-import com.example.SWEBackend.entity.Users;
-import com.example.SWEBackend.repository.LessonRepository;
-import com.example.SWEBackend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.SWEBackend.entity.UserProgress;
+import com.example.SWEBackend.repository.UserProgressRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Service
-@RequiredArgsConstructor
 public class ProgressService {
 
-    private final UserRepository userRepo;
-    private final LessonRepository lessonRepo;
+    private final UserProgressRepository repository;
+    private static final int LESSON_XP = 50;
 
-    public Users completeLesson(Long userId, Long lessonId) {
-        Users user = userRepo.findById(userId).orElseThrow();
-        Lesson lesson = lessonRepo.findById(lessonId).orElseThrow();
-
-        updateStreak(user);
-
-        user.setLessonsCompleted(user.getLessonsCompleted() + 1);
-        user.setTotalXP(user.getTotalXP() + lesson.getXpReward());
-
-        return userRepo.save(user);
+    public ProgressService(UserProgressRepository repository) {
+        this.repository = repository;
     }
 
-
-    private void updateStreak(Users user) {
-        LocalDate today = LocalDate.now();
-
-        if (user.getLastActiveDate() == null ||
-                user.getLastActiveDate().isBefore(today.minusDays(1))) {
-
-            if (user.getStreakFreeze() > 0) {
-                user.setStreakFreeze(user.getStreakFreeze() - 1);
-            } else {
-                user.setCurrentStreak(0);
-            }
+    public UserProgress completeLesson(int lessonId) {
+        UserProgress progress = repository.findTopByOrderByIdAsc();
+        if (progress == null) {
+            progress = new UserProgress();
         }
 
-        if (!today.equals(user.getLastActiveDate())) {
-            user.setCurrentStreak(user.getCurrentStreak() + 1);
-            user.setLongestStreak(
-                    Math.max(user.getLongestStreak(), user.getCurrentStreak())
-            );
+        // XP
+        progress.setTotalXP(progress.getTotalXP() + LESSON_XP);
+
+        // Streak
+        String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_DATE);
+
+        String lastDate = progress.getLastQuizDate();
+
+        if (lastDate == null) {
+            progress.setCurrentStreak(1);
+        } else if (lastDate.equals(today)) {
+            // do nothing
+        } else if (lastDate.equals(yesterday)) {
+            progress.setCurrentStreak(progress.getCurrentStreak() + 1);
+        } else {
+            progress.setCurrentStreak(1);
         }
 
-        user.setLastActiveDate(today);
-    }
+        // longest streak
+        if (progress.getCurrentStreak() > progress.getLongestStreak()) {
+            progress.setLongestStreak(progress.getCurrentStreak());
+        }
 
-    private int streakBonus(Users user) {
-        return user.getCurrentStreak() >= 5 ? 10 : 0;
+        // last quiz date
+        progress.setLastQuizDate(today);
+
+        repository.save(progress);
+        return progress;
     }
 }

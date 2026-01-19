@@ -1,12 +1,9 @@
 package com.example.SWEBackend.dto;
 
-import lombok.Getter;
-
-@Getter
 public class LessonProgressRequest {
-    private Long lessonId;
+    private int lessonId;
 
-    public void setLessonId(Long lessonId) {
-        this.lessonId = lessonId;
-    }
+    public LessonProgressRequest() {}
+    public int getLessonId() { return lessonId; }
+    public void setLessonId(int lessonId) { this.lessonId = lessonId; }
 }
