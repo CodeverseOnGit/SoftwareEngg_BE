@@ -1,23 +1,23 @@
 package com.example.SWEBackend.controller;
 
-import com.example.SWEBackend.dto.ProgressRequest;
-import com.example.SWEBackend.entity.Users;
+import com.example.SWEBackend.dto.LessonProgressRequest;
 import com.example.SWEBackend.service.ProgressService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/progress")
-@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
+@Tag(name = "Progress API", description = "Endpoints for lesson/quizzes")
 public class ProgressController {
 
-    private final ProgressService service;
-
     @PostMapping("/lesson")
-    public Users lesson(@RequestBody ProgressRequest req) {
-        return service.completeLesson(req.userId(), req.xp());
+    @Operation(summary = "Complete a lesson by ID")
+    public ResponseEntity<Void> completeLesson(@RequestBody LessonProgressRequest req) {
+        // your logic here
+        return ResponseEntity.ok().build();
     }
 }

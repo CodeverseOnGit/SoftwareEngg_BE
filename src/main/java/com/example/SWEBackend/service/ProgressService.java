@@ -1,6 +1,8 @@
 package com.example.SWEBackend.service;
 
+import com.example.SWEBackend.entity.Lesson;
 import com.example.SWEBackend.entity.Users;
+import com.example.SWEBackend.repository.LessonRepository;
 import com.example.SWEBackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,17 +14,20 @@ import java.time.LocalDate;
 public class ProgressService {
 
     private final UserRepository userRepo;
+    private final LessonRepository lessonRepo;
 
-    public Users completeLesson(Long userId, int xp) {
+    public Users completeLesson(Long userId, Long lessonId) {
         Users user = userRepo.findById(userId).orElseThrow();
+        Lesson lesson = lessonRepo.findById(lessonId).orElseThrow();
 
         updateStreak(user);
 
         user.setLessonsCompleted(user.getLessonsCompleted() + 1);
-        user.setTotalXP(user.getTotalXP() + xp + streakBonus(user));
+        user.setTotalXP(user.getTotalXP() + lesson.getXpReward());
 
         return userRepo.save(user);
     }
+
 
     private void updateStreak(Users user) {
         LocalDate today = LocalDate.now();
